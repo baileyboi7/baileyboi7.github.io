@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RunoOScope</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0806;
+    --parchment: #c8a96e;
+    --gold: #d4a843;
+    --gold-bright: #f0c060;
+    --ember: #c8521a;
+    --ash: #7a6e5e;
+    --text: #e8d9b8;
+    --text-dim: #9a8a6a;
+    --glow: rgba(212,168,67,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: var(--parchment);
+    border-radius: 50%;
+    animation: twinkle var(--d) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: var(--min); transform: scale(1); }
+    to   { opacity: var(--max); transform: scale(1.4); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header { text-align: center; margin-bottom: 48px; }
+  .title-rune {
+    font-size: 48px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 8px;
+    animation: breathe 4s ease-in-out infinite alternate;
+  }
+  @keyframes breathe {
+    from { opacity: 0.5; text-shadow: 0 0 20px var(--glow); }
+    to   { opacity: 0.8; text-shadow: 0 0 40px rgba(212,168,67,0.6); }
+  }
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 30px var(--glow);
+    line-height: 1.1;
+  }
+  .subtitle {
+    font-size: 15px;
+    color: var(--text-dim);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 40px;
+  }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); }
+  .divider-rune { color: var(--gold); font-size: 20px; opacity: 0.7; }
+
+  .question-section {
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 36px;
+    text-align: center;
+  }
+  .question-label {
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  textarea {
+    width: 100%;
+    background: rgba(200,169,110,0.06);
+    border: 1px solid rgba(212,168,67,0.25);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 17px;
+    line-height: 1.6;
+    padding: 16px 20px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    min-height: 80px;
+  }
+  textarea::placeholder { color: var(--text-dim); font-style: italic; }
+  textarea:focus {
+    border-color: rgba(212,168,67,0.5);
+    box-shadow: 0 0 20px rgba(212,168,67,0.1);
+  }
+
+  .draw-btn {
+    position: relative;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    padding: 14px 48px;
+    cursor: pointer;
+    transition: all 0.4s;
+    text-transform: uppercase;
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+  .draw-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+    z-index: 0;
+  }
+  .draw-btn:hover::before { transform: scaleX(1); }
+  .draw-btn:hover { color: var(--bg); }
+  .draw-btn span { position: relative; z-index: 1; }
+  .draw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .draw-btn:disabled::before { display: none; }
+
+  .spread-select {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .spread-btn {
+    background: transparent;
+    border: 1px solid rgba(212,168,67,0.3);
+    color: var(--text-dim);
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 2px;
+  }
+  .spread-btn.active, .spread-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(212,168,67,0.08);
+  }
+
+  .reading-area {
+    width: 100%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reading-area.visible { opacity: 1; transform: translateY(0); }
+
+  .rune-spread {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .rune-card {
+    width: 110px;
+    background: rgba(200,169,110,0.05);
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 4px;
+    padding: 20px 12px;
+    text-align: center;
+    transition: all 0.5s;
+    position: relative;
+    animation: cardReveal 0.6s ease both;
+    animation-delay: var(--delay);
+  }
+  @keyframes cardReveal {
+    from { opacity: 0; transform: translateY(30px) rotateX(20deg); }
+    to   { opacity: 1; transform: translateY(0) rotateX(0); }
+  }
+  .rune-card:hover {
+    border-color: var(--gold);
+    background: rgba(212,168,67,0.08);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(212,168,67,0.15);
+  }
+  .rune-card.reversed { transform: rotate(180deg); }
+  .rune-card.reversed:hover { transform: rotate(180deg) translateY(4px); }
+  .rune-glyph {
+    font-size: 44px;
+    color: var(--gold);
+    text-shadow: 0 0 20px var(--glow);
+    margin-bottom: 10px;
+    display: block;
+    line-height: 1;
+  }
+  .rune-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .rune-position {
+    font-size: 11px;
+    color: rgba(154,138,106,0.6);
+    font-style: italic;
+    letter-spacing: 0.1em;
+  }
+  .reversed-label {
+    font-size: 9px;
+    color: var(--ember);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    opacity: 0.8;
+  }
+
+  .interpretation {
+    background: rgba(200,169,110,0.04);
+    border: 1px solid rgba(212,168,67,0.15);
+    border-radius: 4px;
+    padding: 36px 40px;
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .interpretation::before {
+    content: '✦';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg);
+    padding: 0 12px;
+    color: var(--gold);
+    font-size: 18px;
+  }
+  .interp-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 24px;
+    opacity: 0.8;
+  }
+
+  .loading-runes {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 16px;
+  }
+  .spin-rune {
+    display: block;
+    animation: spinRune 1.5s linear infinite;
+    font-size: 28px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  @keyframes spinRune {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .rune-detail {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(212,168,67,0.1);
+  }
+  .rune-detail:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .rune-detail-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .detail-glyph { font-size: 28px; color: var(--gold); text-shadow: 0 0 12px var(--glow); }
+  .detail-name { font-family: 'Cinzel Decorative', serif; font-size: 14px; color: var(--gold-bright); letter-spacing: 0.1em; }
+  .detail-pos { font-size: 12px; color: var(--text-dim); font-style: italic; margin-left: auto; letter-spacing: 0.1em; }
+  .detail-reversed-badge { font-size: 11px; color: var(--ember); border: 1px solid var(--ember); padding: 1px 6px; letter-spacing: 0.15em; }
+  .detail-text { font-size: 16px; line-height: 1.8; color: var(--text); font-style: italic; }
+
+  .overall-reading {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(212,168,67,0.2);
+    text-align: center;
+  }
+  .overall-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+  .overall-text {
+    font-size: 17px;
+    line-height: 1.85;
+    color: var(--text);
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  .again-btn {
+    display: block;
+    margin: 40px auto 0;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Crimson Pro', serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 8px 16px;
+    transition: color 0.3s;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgba(154,138,106,0.3);
+  }
+  .again-btn:hover { color: var(--gold); }
+
+  @media (max-width: 500px) {
+    .rune-card { width: 88px; }
+    .rune-glyph { font-size: 34px; }
+    .interpretation { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <header>
+    <div class="title-rune">ᚱᚢᚾᛟ</div>
+    <h1>Runo-O-Scope</h1>
+    <p class="subtitle">Elder Futhark Oracle · Seek the Wisdom of the Runes</p>
+  </header>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-rune">ᛟ</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="question-section">
+    <p class="question-label">Whisper your question to the runes</p>
+    <textarea id="question" rows="3" placeholder="What guidance do you seek? Or leave empty to receive a general reading..."></textarea>
+  </div>
+
+  <div class="spread-select">
+    <button class="spread-btn active" data-spread="1">Single Rune</button>
+    <button class="spread-btn" data-spread="3">Three Runes</button>
+    <button class="spread-btn" data-spread="5">Five Runes</button>
+  </div>
+
+  <button class="draw-btn" id="drawBtn"><span>✦ Cast the Runes ✦</span></button>
+
+  <div class="reading-area" id="readingArea">
+    <div class="rune-spread" id="runeSpread"></div>
+    <div class="interpretation" id="interpretation"></div>
+    <button class="again-btn" id="againBtn">Cast again</button>
+  </div>
+</div>
+
+<script>
+const RUNES = [
+  { glyph: 'ᚠ', name: 'Fehu',    upright: 'Prosperity and new beginnings flow toward you. Financial opportunity or creative energy is at hand — seize it with gratitude.',                          reversed: 'Beware of loss through recklessness. Guard your resources; what was gained may slip away if attention wanders.' },
+  { glyph: 'ᚢ', name: 'Uruz',    upright: 'Raw, untamed power stirs within you. Physical or emotional strength is renewed — trust your instincts and move boldly.',                               reversed: 'Vitality is blocked or misdirected. Rest and restore before pressing forward; force applied now may break rather than shape.' },
+  { glyph: 'ᚦ', name: 'Thurisaz',upright: 'A gateway stands before you — painful perhaps, but necessary. The thorn protects; this challenge will forge something stronger.',                       reversed: 'Danger lurks in rash action. Pause at the threshold. The gateway is present but the moment to cross has not yet come.' },
+  { glyph: 'ᚨ', name: 'Ansuz',   upright: 'Listen deeply — wisdom arrives through speech, dream, or sign. Odin breathes his knowing into this moment; be receptive.',                            reversed: 'Miscommunication or deception clouds your path. Question what you hear; not all voices speak truth.' },
+  { glyph: 'ᚱ', name: 'Raidho',  upright: 'You are in right motion — the journey unfolds as it should. Trust the path; soul and circumstance are aligned.',                                       reversed: 'The journey is disrupted or delayed. Check your direction; are you moving toward what truly matters?' },
+  { glyph: 'ᚲ', name: 'Kenaz',   upright: 'Illumination pierces the dark. Creative fire, clarity of vision, or hidden knowledge is revealed. Now is a time of awakening.',                       reversed: 'The flame dims. Knowledge is withheld, or a relationship is losing its warmth. Let what must end, end.' },
+  { glyph: 'ᚷ', name: 'Gebo',    upright: 'A sacred exchange is at hand — a gift given or received, a partnership formed. Generosity creates harmony between worlds.',                           reversed: 'Reflect carefully: is this exchange truly balanced? Gebo asks that giving and receiving flow as equals.' },
+  { glyph: 'ᚹ', name: 'Wunjo',   upright: 'Joy arrives — earned, deep, and real. Harmony in relationships and a sense of belonging prevail. Allow yourself to receive happiness.',                reversed: 'Sorrow or estrangement overshadows joy. Look for what has become misaligned; small shifts may restore harmony.' },
+  { glyph: 'ᚺ', name: 'Hagalaz', upright: 'Sudden change shatters the old form. Hail destroys the harvest but becomes the water that nourishes — transformation is at work.',                    reversed: 'The storm\'s force is intensified and resistance is futile. Surrender to what cannot be controlled; find the seed within the ruin.' },
+  { glyph: 'ᚾ', name: 'Nauthiz', upright: 'From constraint and friction, strength is forged. Identify what you truly need — not want — and let necessity guide you.',                            reversed: 'Needs go unmet or are misunderstood. You may be seeking comfort where courage is required.' },
+  { glyph: 'ᛁ', name: 'Isa',     upright: 'Be still. Ice is not permanent — it holds things in suspension until the time is right. Patience is the practice asked of you now.',                  reversed: 'Stillness risks becoming stagnation. The thaw begins with one honest, deliberate action.' },
+  { glyph: 'ᛃ', name: 'Jera',    upright: 'The harvest is coming. What you have tended with care is ripening. Trust the natural cycles; the reward draws near.',                                  reversed: 'The cycle is disrupted or the harvest premature. Have patience — forcing the season yields poor fruit.' },
+  { glyph: 'ᛇ', name: 'Eihwaz',  upright: 'Yggdrasil stands at the center. You are the axis between worlds — resilient, rooted, able to endure. This is a rune of profound protection.',        reversed: 'The axis wobbles. Seek the center within yourself; instability is a signal to return to what is unchanging.' },
+  { glyph: 'ᛈ', name: 'Perthro', upright: 'The cup of fate is cast. Something hidden is about to be revealed. Embrace the mystery — not all must be known to be navigated.',                     reversed: 'Hidden forces work against you, or secrets cause harm. Seek truth with openness rather than fear.' },
+  { glyph: 'ᛉ', name: 'Algiz',   upright: 'You are protected. Higher guidance surrounds you. Open yourself to spiritual connection; the guardian stands at the threshold.',                       reversed: 'Vulnerability or misplaced trust weakens you. Your protection dims when you act against your deeper values.' },
+  { glyph: 'ᛋ', name: 'Sowilo',  upright: 'The sun shines on your endeavors. Success, clarity, and life-force energy surge forward. Your will is aligned with your highest good.',               reversed: 'Arrogance or misdirected will clouds the path. The sun blinds when faced without humility.' },
+  { glyph: 'ᛏ', name: 'Tiwaz',   upright: 'Honor, justice, and right action call to you. Sacrifice may be required, but this is the warrior\'s sacrifice — willing and clear-eyed.',             reversed: 'Injustice, broken oaths, or blocked willpower surfaces. Examine where integrity has been compromised.' },
+  { glyph: 'ᛒ', name: 'Berkano', upright: 'The birch goddess blesses new growth. A time of birth, healing, and tending — of self or of a new endeavor. Be gentle and nurturing.',               reversed: 'Growth is blocked by anxiety or lack of care. What requires attention and tending has been neglected.' },
+  { glyph: 'ᛖ', name: 'Ehwaz',   upright: 'Swift, purposeful movement through partnership. Two forces working as one — trust your companion on this journey.',                                    reversed: 'The partnership is strained or the motion has become directionless. Re-establish trust and shared purpose.' },
+  { glyph: 'ᛗ', name: 'Mannaz',  upright: 'Look inward with honesty and outward with compassion. Your humanity — full, flawed, and luminous — is your greatest asset.',                          reversed: 'Self-deception or isolation from community hinders you. Seek counsel and examine your blind spots.' },
+  { glyph: 'ᛚ', name: 'Laguz',   upright: 'Trust the deep waters of intuition. Flow around obstacles rather than forcing through. The unconscious holds the answer you seek.',                   reversed: 'Fear of the depths, or being overwhelmed by emotion. Return to the surface before diving again.' },
+  { glyph: 'ᛜ', name: 'Ingwaz',  upright: 'A seed of enormous potential rests within you, waiting. The inner work is nearly complete. Rest, gestate, and prepare for emergence.',                reversed: 'The energy is diffuse or the potential unrealized. Focus inward; scattered effort delays the birth.' },
+  { glyph: 'ᛞ', name: 'Dagaz',   upright: 'A breakthrough of clarity and transformation is at hand — the liminal space between dark and light. Everything is about to shift.',                   reversed: 'The dawn is delayed. This is not a setback but a deeper preparation. Trust the timing of your transformation.' },
+  { glyph: 'ᛟ', name: 'Othala',  upright: 'Your roots hold wisdom. Look to ancestry, tradition, and what has been handed to you — there is treasure in the inheritance of your lineage.',        reversed: 'Clinging to the past or outdated structures blocks your path. What was inherited may need to be released.' },
+];
+
+const POSITIONS = {
+  1: ['The Heart of the Matter'],
+  3: ['The Past', 'The Present', 'The Path Ahead'],
+  5: ['Foundation', 'Challenge', 'Hidden Influence', 'Guidance', 'Outcome'],
+};
+
+let currentSpread = 1;
+let isLoading = false;
+
+function genStars() {
+  const el = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2 + 0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*5}s;--min:${0.1+Math.random()*0.2};--max:${0.5+Math.random()*0.5};animation-delay:${Math.random()*6}s;`;
+    el.appendChild(s);
+  }
+}
+genStars();
+
+document.querySelectorAll('.spread-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.spread-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSpread = parseInt(btn.dataset.spread);
+  });
+});
+
+document.getElementById('drawBtn').addEventListener('click', castRunes);
+document.getElementById('againBtn').addEventListener('click', () => {
+  document.getElementById('readingArea').classList.remove('visible');
+  setTimeout(castRunes, 400);
+});
+
+function drawRunes(count) {
+  const shuffled = [...RUNES].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count).map(r => ({ ...r, isReversed: Math.random() < 0.35 }));
+}
+
+function renderCards(runes) {
+  const spread = document.getElementById('runeSpread');
+  spread.innerHTML = '';
+  const positions = POSITIONS[currentSpread];
+  runes.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'rune-card' + (r.isReversed ? ' reversed' : '');
+    card.style.setProperty('--delay', `${i * 0.15}s`);
+    card.innerHTML = `
+      <span class="rune-glyph">${r.glyph}</span>
+      <div class="rune-name">${r.name}</div>
+      <div class="rune-position">${positions[i]}</div>
+      ${r.isReversed ? '<div class="reversed-label">Reversed</div>' : ''}
+    `;
+    spread.appendChild(card);
+  });
+}
+
+async function castRunes() {
+  if (isLoading) return;
+  isLoading = true;
+  const btn = document.getElementById('drawBtn');
+  btn.disabled = true;
+
+  const question = document.getElementById('question').value.trim();
+  const runes = drawRunes(currentSpread);
+  const positions = POSITIONS[currentSpread];
+
+  renderCards(runes);
+
+  const interp = document.getElementById('interpretation');
+  interp.innerHTML = `<div class="loading-runes"><span class="spin-rune">ᛟ</span>The runes speak through the ages…</div>`;
+
+  const readingArea = document.getElementById('readingArea');
+  readingArea.classList.add('visible');
+
+  const runeDescriptions = runes.map((r, i) =>
+    `Position ${i+1} — ${positions[i]}: ${r.name} (${r.glyph})${r.isReversed ? ' REVERSED' : ''} — ${r.isReversed ? r.reversed : r.upright}`
+  ).join('\n');
+
+  const prompt = `You are an ancient Nordic rune oracle speaking in a poetic, mystical, yet grounded voice.
+The seeker${question ? ` asks: "${question}"` : ' seeks a general reading'}.
+
+The following runes have been cast:
+${runeDescriptions}
+
+Provide a reading with two parts:
+1. For EACH rune, give a 2-3 sentence interpretation specific to its position and the seeker's question. Weave in the rune's traditional meaning with poetic insight.
+2. An overall synthesis of 3-4 sentences tying all runes together into unified guidance.
+
+Format your response as JSON only, with no markdown fences:
+{"rune_readings":[{"name":"RuneName","reading":"2-3 sentence interpretation"}],"overall":"3-4 sentence synthesis"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    let html = `<div class="interp-title">The Runes Have Spoken</div>`;
+    parsed.rune_readings.forEach((r, i) => {
+      const rune = runes[i];
+      html += `<div class="rune-detail">
+        <div class="rune-detail-header">
+          <span class="detail-glyph">${rune.glyph}</span>
+          <span class="detail-name">${rune.name}</span>
+          ${rune.isReversed ? '<span class="detail-reversed-badge">Reversed</span>' : ''}
+          <span class="detail-pos">${positions[i]}</span>
+        </div>
+        <p class="detail-text">${r.reading}</p>
+      </div>`;
+    });
+    html += `<div class="overall-reading">
+      <div class="overall-title">✦ The Full Weaving ✦</div>
+      <p class="overall-text">${parsed.overall}</p>
+    </div>`;
+    interp.innerHTML = html;
+
+  } catch (err) {
+    // Fallback to built-in readings
+    let html = `<div class="interp-title">The Runes Have Spoken</div>`;
+    runes.forEach((r, i) => {
+      html += `<div class="rune-detail">
+        <div class="rune-detail-header">
+          <span class="detail-glyph">${r.glyph}</span>
+          <span class="detail-name">${r.name}</span>
+          ${r.isReversed ? '<span class="detail-reversed-badge">Reversed</span>' : ''}
+          <span class="detail-pos">${positions[i]}</span>
+        </div>
+        <p class="detail-text">${r.isReversed ? r.reversed : r.upright}</p>
+      </div>`;
+    });
+    html += `<div class="overall-reading">
+      <div class="overall-title">✦ Reflect Upon These Truths ✦</div>
+      <p class="overall-text">The runes have cast their light upon your path. Sit with their wisdom, for meaning deepens in quiet contemplation. What speaks most strongly to your heart is the message meant for you.</p>
+    </div>`;
+    interp.innerHTML = html;
+  }
+
+  isLoading = false;
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
